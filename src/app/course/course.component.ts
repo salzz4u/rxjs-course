@@ -4,7 +4,7 @@ import {Course} from '../model/course';
 import {concat, fromEvent, Observable} from 'rxjs';
 import {Lesson} from '../model/lesson';
 import {createHttpObservable} from '../common/util';
-import {debounceTime, distinctUntilChanged, map, switchMap} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, map, switchMap} from 'rxjs/operators';
 
 
 @Component({
@@ -35,13 +35,14 @@ export class CourseComponent implements OnInit, AfterViewInit {
       map(() => this.input.nativeElement.value),
       debounceTime(400),
       distinctUntilChanged(),
+      filter(search => search.length > 2),
       switchMap(search => this.getLessons$(search))
     );
     this.lessons$ = concat(initialLessons$, searchLesson$);
   }
 
   getLessons$(search = '') {
-    return createHttpObservable(`/api/lessons?courseId=${this.courseId}&pageSize=100&search=${search}`).pipe(
+    return createHttpObservable(`/api/lessons?courseId=${this.courseId}&pageSize=100&filter=${search}`).pipe(
       map(res => res['payload'])
     );
   }
