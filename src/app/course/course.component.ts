@@ -1,10 +1,10 @@
 import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {Course} from '../model/course';
-import {concat, fromEvent, Observable} from 'rxjs';
+import {fromEvent, interval, Observable} from 'rxjs';
 import {Lesson} from '../model/lesson';
 import {createHttpObservable} from '../common/util';
-import {debounceTime, distinctUntilChanged, filter, map, switchMap} from 'rxjs/operators';
+import {debounceTime, map, throttle, throttleTime} from 'rxjs/operators';
 
 
 @Component({
@@ -30,15 +30,11 @@ export class CourseComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    const initialLessons$ = this.getLessons$();
-    const searchLesson$ = fromEvent<KeyboardEvent>(this.input.nativeElement, 'keyup').pipe(
-      map(() => this.input.nativeElement.value),
-      debounceTime(400),
-      distinctUntilChanged(),
-      filter(search => search.length > 2),
-      switchMap(search => this.getLessons$(search))
-    );
-    this.lessons$ = concat(initialLessons$, searchLesson$);
+    fromEvent<any>(this.input.nativeElement, 'keyup')
+      .pipe(
+        map(event => event.target.value),
+        throttleTime(1000)
+      ).subscribe(console.log);
   }
 
   getLessons$(search = '') {
